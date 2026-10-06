@@ -61,10 +61,10 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _run(command: list[str]) -> None:
+def _run(command: list[str], *, cwd: Path) -> None:
     printable = subprocess.list2cmdline(command)
     print(f"\n>>> {printable}", flush=True)
-    subprocess.run(command, check=True)
+    subprocess.run(command, check=True, cwd=cwd)
 
 
 def main() -> None:
@@ -92,7 +92,7 @@ def main() -> None:
     ]
     if args.speaker:
         bootstrap.extend(["--speaker", args.speaker])
-    _run(bootstrap)
+    _run(bootstrap, cwd=repo_root)
 
     _run(
         [
@@ -102,7 +102,8 @@ def main() -> None:
             "--language",
             args.language,
             "--overwrite",
-        ]
+        ],
+        cwd=repo_root,
     )
 
     _run(
@@ -116,7 +117,8 @@ def main() -> None:
             str(eval_dir),
             "--max-cached-states",
             str(args.max_cached_states),
-        ]
+        ],
+        cwd=repo_root,
     )
 
     _run(
@@ -124,7 +126,8 @@ def main() -> None:
             python,
             str(scripts / "score_expressive_eval.py"),
             str(eval_dir),
-        ]
+        ],
+        cwd=repo_root,
     )
 
     if not args.skip_blind:
@@ -133,7 +136,8 @@ def main() -> None:
                 python,
                 str(scripts / "prepare_expressive_blind_eval.py"),
                 str(eval_dir),
-            ]
+            ],
+            cwd=repo_root,
         )
 
     scores_path = eval_dir / "scores.json"
