@@ -38,9 +38,23 @@ def _parser() -> argparse.ArgumentParser:
         help="Pocket TTS language/config key (default: english).",
     )
     parser.add_argument(
+        "--source",
+        choices=("ears", "expresso"),
+        default="ears",
+        help="Research bootstrap source (default: ears).",
+    )
+    parser.add_argument(
         "--speaker",
         default=None,
-        help="Optional Expresso speaker id such as ex04.",
+        help=(
+            "Optional source speaker. EARS supports p003/p031; "
+            "Expresso accepts ids such as ex04."
+        ),
+    )
+    parser.add_argument(
+        "--enhanced",
+        action="store_true",
+        help="Use enhanced/cleaned EARS recordings (ignored for Expresso).",
     )
     parser.add_argument(
         "--revision",
@@ -82,16 +96,30 @@ def main() -> None:
     python = sys.executable
     scripts = repo_root / "scripts"
 
-    bootstrap = [
-        python,
-        str(scripts / "bootstrap_expresso_research_bank.py"),
-        "--output-dir",
-        str(bank_dir),
-        "--revision",
-        args.revision,
-    ]
-    if args.speaker:
-        bootstrap.extend(["--speaker", args.speaker])
+    if args.source == "ears":
+        bootstrap = [
+            python,
+            str(scripts / "bootstrap_ears_research_bank.py"),
+            "--output-dir",
+            str(bank_dir),
+            "--revision",
+            args.revision,
+        ]
+        if args.speaker:
+            bootstrap.extend(["--speaker", args.speaker])
+        if args.enhanced:
+            bootstrap.append("--enhanced")
+    else:
+        bootstrap = [
+            python,
+            str(scripts / "bootstrap_expresso_research_bank.py"),
+            "--output-dir",
+            str(bank_dir),
+            "--revision",
+            args.revision,
+        ]
+        if args.speaker:
+            bootstrap.extend(["--speaker", args.speaker])
     _run(bootstrap, cwd=repo_root)
 
     _run(
@@ -156,6 +184,7 @@ def main() -> None:
     aggregate = scores.get("aggregate", {})
 
     print("\n=== Expressive research experiment complete ===")
+    print(f"Research source: {args.source}")
     print(f"Work directory: {work_root}")
     print(f"Route preview: {work_root / 'route-preview.json'}")
     print(f"Compiled prompt bank: {compiled_manifest}")
@@ -169,8 +198,8 @@ def main() -> None:
         print(json.dumps(aggregate, indent=2))
 
     print(
-        "\nReminder: the Expresso bootstrap is CC BY-NC 4.0 and is "
-        "non-commercial research/evaluation only."
+        "\nReminder: the EARS/Expresso research bootstraps are CC BY-NC 4.0 "
+        "and are non-commercial research/evaluation only."
     )
     print(
         "Do not make product-quality conclusions until an appropriately "
