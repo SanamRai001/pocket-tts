@@ -18,10 +18,15 @@ simple dependencies, and easy upstream synchronization.
 
 ## Current milestone
 
-**Expressive foundation milestone: Phase 1 + Phase 2 implemented, verification deferred.**
+**Expressive foundation milestone: Phase 1 + Phase 2 + Phase 3A infrastructure implemented,
+verification deferred.**
 
 The user explicitly chose to continue building before spending time on local/full verification.
 Tests are present in the branch, but results must not be claimed until they are actually run.
+
+Phase 3A code/tooling is complete enough to capture and compile a real same-speaker bank. The one
+external input still required for the controlled experiment is the authorized reference audio
+itself.
 
 Architecture:
 
@@ -98,6 +103,54 @@ It deliberately:
 
 Its purpose is graceful offline behavior, not state-of-the-art emotion recognition.
 
+## Phase 3A - Same-Speaker Prompt Bank + A/B Experiment
+
+Implemented:
+
+- versioned prompt-bank manifest
+- machine-readable prompt-bank JSON Schema
+- required neutral anchor
+- portable relative-path validation
+- generic `rights_confirmed` guard before voice-state export
+- source-audio SHA-256 fingerprints
+- model/config compatibility metadata for compiled states
+- model/config mismatch rejection
+- same-speaker eight-style example bank
+- controlled recording protocol
+- prompt WAV -> `.safetensors` bank compiler
+- fixed hand-authored emotional evaluation corpus
+- neutral-vs-expressive A/B audio generation script
+- timing, duration, routing, and speed report
+- output placed under the already-ignored `runs/` directory
+
+The first bank prototypes are:
+
+- neutral
+- warm
+- happy
+- excited
+- calm
+- sad
+- angry
+- fearful
+
+Their initial V/A/D/I coordinates are experimental prototypes and should be tuned from real
+evaluation rather than treated as universal labels.
+
+### Controlled experiment principle
+
+The first recordings use the same speaker and the same text across all styles. This isolates
+prosody/style better than giving every emotion different words.
+
+The fixed evaluation corpus contains manual affect trajectories. That separates synthesis/routing
+quality from planner quality for the first A/B experiment.
+
+### Public research bootstrap
+
+Kyutai's public Expresso voice collection contains same-speaker expressive 10-second clips and can
+be useful for a temporary research/debug bank. The Expresso material is CC BY-NC 4.0 and
+non-commercial, so it is not the default product-oriented bank.
+
 ## Performance / size impact so far
 
 Expected architectural impact:
@@ -117,17 +170,28 @@ Core:
 
 - `pocket_tts/expressive.py`
 - `pocket_tts/expressive_planner.py`
+- `pocket_tts/expressive_prompt_bank.py`
+
+Scripts:
+
+- `scripts/export_expressive_prompt_bank.py`
+- `scripts/generate_expressive_eval.py`
 
 Tests:
 
 - `tests/test_expressive.py`
 - `tests/test_expressive_planner.py`
+- `tests/test_expressive_prompt_bank.py`
 
 Docs/contracts:
 
 - `docs/expressive-speech/ARCHITECTURE.md`
 - `docs/expressive-speech/PLANNER_PROTOCOL.md`
+- `docs/expressive-speech/RECORDING_PROTOCOL.md`
 - `docs/expressive-speech/expressive-plan-v1.schema.json`
+- `docs/expressive-speech/expressive-prompt-bank-v1.schema.json`
+- `docs/expressive-speech/prompt-bank.example.json`
+- `docs/expressive-speech/eval-corpus-v1.json`
 - `docs/PROJECT_STATE.md`
 
 No existing Pocket TTS synthesis/model implementation has been modified.
@@ -145,7 +209,7 @@ git fetch origin
 git switch feat/expressive-tts-foundation
 git pull --ff-only
 
-uv run pytest tests/test_expressive.py tests/test_expressive_planner.py -v
+uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py -v
 uv run ty check
 uvx pre-commit run --all-files
 ```
@@ -185,25 +249,27 @@ A real audio evaluation is also required before calling expressive synthesis suc
 
 ## Next phase
 
-**Phase 3A - prompt-bank and first real expressive-audio experiment**
+**Phase 3B - run the first real prompt-bank experiment and add objective scoring**
 
-Before training or changing FlowLM:
+The infrastructure is ready. The next meaningful step is data + measurement:
 
-1. define a same-speaker recording protocol
-2. define the minimum useful style bank and prototype V/A/D/I coordinates
-3. add a prompt-bank manifest format
-4. support exporting prompt WAVs to cached `.safetensors` states
-5. create a fixed mixed-emotion evaluation script/corpus
-6. compare baseline Pocket TTS vs expressive routing on actual audio
-7. measure:
-   - time to first chunk
-   - real-time factor
-   - memory
+1. capture/select one authorized same-speaker bank using `RECORDING_PROTOCOL.md`
+2. compile it with `scripts/export_expressive_prompt_bank.py`
+3. generate the fixed A/B set with `scripts/generate_expressive_eval.py`
+4. listen for:
+   - emotional distinctness
+   - speaker consistency
+   - clipping/noise leakage
+   - abrupt segment boundaries
+   - overacting/underacting
+5. add objective evaluation:
    - WER
    - speaker similarity
-   - audio quality
+   - quality proxy such as UTMOS
    - emotion agreement
-   - human preference
+   - peak memory
+   - time to first chunk
+6. compare prompt-bank routing against ordinary neutral Pocket TTS
 
-Only after those results should we decide whether Phase 4's tiny learned affect-prefix adapter is
-worth the complexity.
+Do not train the affect-prefix adapter yet. The current prompt-conditioned ceiling needs to be
+measured first.
