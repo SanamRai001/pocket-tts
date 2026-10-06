@@ -80,3 +80,14 @@ def test_blind_listening_html_keeps_conditions_hidden() -> None:
     assert "Download ratings.csv" in html
     assert "baseline-neutral" not in html
     assert "answer-key.json" in html
+
+
+def test_empty_blind_ratings_message_is_actionable() -> None:
+    message = (
+        "ratings.csv is still empty: all trials are unrated. "
+        "Complete blind/index.html, click 'Download ratings.csv', then either "
+        "replace blind/ratings.csv or pass the downloaded file with --ratings."
+    )
+
+    assert "all trials are unrated" in message
+    assert "--ratings" in message
