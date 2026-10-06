@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -129,7 +130,14 @@ def _device_for_pipeline(device: str) -> int | str:
     return device
 
 
-def _build_asr(model_name: str, device: str):
+def _build_asr(
+    model_name: str,
+    device: str,
+) -> tuple[
+    Callable[[Path], tuple[str, str]],
+    Callable[[str], str],
+    Callable[[str | list[str], str | list[str]], float],
+]:
     try:
         import jiwer
         from transformers import pipeline
@@ -145,7 +153,10 @@ def _build_asr(model_name: str, device: str):
         model=model_name,
         device=_device_for_pipeline(device),
     )
-    normalize = EnglishTextNormalizer()
+    normalizer = EnglishTextNormalizer()
+
+    def normalize(text: str) -> str:
+        return normalizer(text)
 
     def transcribe(path: Path) -> tuple[str, str]:
         sample_rate, audio = _load_float_mono(path)
@@ -156,10 +167,16 @@ def _build_asr(model_name: str, device: str):
         raw_text = result["text"]
         return raw_text, normalize(raw_text)
 
-    return transcribe, normalize, jiwer
+    def word_error_rate(
+        reference: str | list[str],
+        hypothesis: str | list[str],
+    ) -> float:
+        return float(jiwer.wer(reference, hypothesis))
+
+    return transcribe, normalize, word_error_rate
 
 
-def _build_speaker_embedder(device: torch.device):
+def _build_speaker_embedder(device: torch.device) -> Callable[[Path], torch.Tensor]:
     try:
         from transformers import AutoFeatureExtractor, WavLMForXVector
     except ImportError as exc:
@@ -185,7 +202,7 @@ def _build_speaker_embedder(device: torch.device):
     return embed
 
 
-def _build_utmos(device: torch.device):
+def _build_utmos(device: torch.device) -> Callable[[Path], float]:
     try:
         from utmos_pytorch import UTMOSScoreTorch
     except ImportError as exc:
@@ -264,14 +281,14 @@ def main() -> None:
         }
 
         if asr is not None:
-            transcribe, normalize, jiwer = asr
+            transcribe, normalize, word_error_rate = asr
             baseline_raw, baseline_hyp = transcribe(baseline_path)
             expressive_raw, expressive_hyp = transcribe(expressive_path)
             reference = normalize(text)
             baseline["asr_text"] = baseline_raw
             expressive["asr_text"] = expressive_raw
-            baseline["wer"] = float(jiwer.wer(reference, baseline_hyp))
-            expressive["wer"] = float(jiwer.wer(reference, expressive_hyp))
+            baseline["wer"] = word_error_rate(reference, baseline_hyp)
+            expressive["wer"] = word_error_rate(reference, expressive_hyp)
             baseline_wer_refs.append(reference)
             baseline_wer_hyps.append(baseline_hyp)
             expressive_wer_refs.append(reference)
@@ -364,12 +381,12 @@ def main() -> None:
     }
 
     if asr is not None:
-        _, _, jiwer = asr
-        aggregate["baseline_corpus_wer"] = float(
-            jiwer.wer(baseline_wer_refs, baseline_wer_hyps)
+        _, _, word_error_rate = asr
+        aggregate["baseline_corpus_wer"] = word_error_rate(
+            baseline_wer_refs, baseline_wer_hyps
         )
-        aggregate["expressive_corpus_wer"] = float(
-            jiwer.wer(expressive_wer_refs, expressive_wer_hyps)
+        aggregate["expressive_corpus_wer"] = word_error_rate(
+            expressive_wer_refs, expressive_wer_hyps
         )
         aggregate["wer_delta"] = (
             aggregate["expressive_corpus_wer"] - aggregate["baseline_corpus_wer"]
