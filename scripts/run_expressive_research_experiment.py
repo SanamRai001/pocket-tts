@@ -38,6 +38,15 @@ def _parser() -> argparse.ArgumentParser:
         help="Pocket TTS language/config key (default: english).",
     )
     parser.add_argument(
+        "--corpus",
+        type=Path,
+        default=Path("docs/expressive-speech/eval-corpus-v1.1.json"),
+        help=(
+            "Evaluation corpus. Defaults to v1.1, which extends the frozen "
+            "Phase 3C v1 baseline with explicit happy-style coverage."
+        ),
+    )
+    parser.add_argument(
         "--source",
         choices=("ears", "expresso"),
         default="ears",
@@ -127,6 +136,8 @@ def main() -> None:
             python,
             str(scripts / "inspect_expressive_routes.py"),
             str(bank_manifest),
+            "--corpus",
+            str(args.corpus),
             "--output",
             str(work_root / "route-preview.json"),
         ],
@@ -150,6 +161,8 @@ def main() -> None:
             python,
             str(scripts / "generate_expressive_eval.py"),
             str(compiled_manifest),
+            "--corpus",
+            str(args.corpus),
             "--language",
             args.language,
             "--output-dir",
@@ -185,6 +198,7 @@ def main() -> None:
 
     print("\n=== Expressive research experiment complete ===")
     print(f"Research source: {args.source}")
+    print(f"Evaluation corpus: {args.corpus}")
     print(f"Work directory: {work_root}")
     print(f"Route preview: {work_root / 'route-preview.json'}")
     print(f"Compiled prompt bank: {compiled_manifest}")
