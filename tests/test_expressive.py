@@ -1,7 +1,7 @@
 """Unit tests for the dependency-free expressive routing layer."""
 
-from collections.abc import Iterator
 import threading
+from collections.abc import Iterator
 
 import pytest
 import torch
