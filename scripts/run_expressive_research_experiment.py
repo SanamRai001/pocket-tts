@@ -97,6 +97,17 @@ def main() -> None:
     _run(
         [
             python,
+            str(scripts / "inspect_expressive_routes.py"),
+            str(bank_manifest),
+            "--output",
+            str(work_root / "route-preview.json"),
+        ],
+        cwd=repo_root,
+    )
+
+    _run(
+        [
+            python,
             str(scripts / "export_expressive_prompt_bank.py"),
             str(bank_manifest),
             "--language",
@@ -146,6 +157,7 @@ def main() -> None:
 
     print("\n=== Expressive research experiment complete ===")
     print(f"Work directory: {work_root}")
+    print(f"Route preview: {work_root / 'route-preview.json'}")
     print(f"Compiled prompt bank: {compiled_manifest}")
     print(f"A/B audio: {eval_dir}")
     print(f"Scores: {scores_path}")
