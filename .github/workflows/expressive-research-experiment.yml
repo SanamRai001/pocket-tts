@@ -3,8 +3,16 @@ name: Expressive Research Experiment
 on:
   workflow_dispatch:
     inputs:
+      source:
+        description: "Research source: ears or expresso"
+        required: false
+        default: "ears"
+        type: choice
+        options:
+          - ears
+          - expresso
       speaker:
-        description: "Optional Expresso speaker id, e.g. ex03"
+        description: "Optional source speaker (EARS: p003/p031; Expresso: ex04, etc.)"
         required: false
         type: string
       max_cached_states:
@@ -46,6 +54,7 @@ jobs:
       - name: Run research-only expressive experiment
         shell: bash
         env:
+          EXPRESSIVE_SOURCE: ${{ inputs.source }}
           EXPRESSIVE_SPEAKER: ${{ inputs.speaker }}
           EXPRESSIVE_CACHE: ${{ inputs.max_cached_states }}
         run: |
@@ -53,6 +62,7 @@ jobs:
           args=(
             --work-dir runs/expressive-research-v1
             --language english
+            --source "${EXPRESSIVE_SOURCE:-ears}"
             --max-cached-states "${EXPRESSIVE_CACHE:-2}"
           )
           if [[ -n "${EXPRESSIVE_SPEAKER:-}" ]]; then
