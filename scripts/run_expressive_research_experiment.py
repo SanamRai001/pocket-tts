@@ -101,6 +101,7 @@ def main() -> None:
             str(bank_manifest),
             "--language",
             args.language,
+            "--overwrite",
         ]
     )
 
