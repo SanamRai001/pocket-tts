@@ -63,6 +63,7 @@ A semantic planner divides text into meaningful segments. Each segment carries:
 - intensity in [0, 1]
 - optional exact style override
 - optional pause after the segment
+- planner confidence in [0, 1], used to damp uncertain affect toward neutral
 
 A style bank contains reference prompts with prototype coordinates in the same space.
 
@@ -172,14 +173,22 @@ Continuous acoustic control remains a research track, not a hidden assumption.
 
 ## Phase 2: Planner interchange
 
-Add a stable JSON plan schema and adapters:
+**Implemented on the expressive foundation branch.**
 
-1. manual JSON
-2. ChatGPT/LLM-produced JSON
-3. dependency-free local heuristic fallback
-4. optional tiny local emotion classifier, only if its accuracy/size trade-off is worthwhile
+The planner boundary now has a stable, versioned JSON contract with:
 
-The base package must not gain a mandatory transformer/LLM dependency.
+1. manual JSON parsing/serialization
+2. a ChatGPT/provider-neutral planner prompt builder
+3. strict source-text preservation validation
+4. allowed-style validation
+5. planner confidence, which damps uncertain affect toward neutral
+6. a dependency-free conservative English heuristic fallback
+7. a machine-readable JSON Schema
+
+The base package still has no mandatory transformer/LLM dependency.
+
+A future tiny local emotion classifier remains optional research. It should only be added if it
+meaningfully beats the conservative fallback while keeping the CPU/size budget attractive.
 
 ## Phase 3: Evaluation harness
 
