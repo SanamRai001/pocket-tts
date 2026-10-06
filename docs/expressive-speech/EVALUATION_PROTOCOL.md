@@ -15,6 +15,10 @@ quality is introduced.
 
 ## Evaluation layers
 
+The lightweight bootstrap/generate/score/listening workflow uses `uv run --no-dev` on purpose.
+That avoids installing the large optional research-scoring stack until it is explicitly needed.
+
+
 ### Tier 0: always available
 
 No additional scorer model is required.
@@ -98,7 +102,7 @@ If no authorized custom bank is available yet, the repository can create a tempo
 Kyutai's public Expresso voice clips:
 
 ~~~powershell
-uv run python scripts/bootstrap_expresso_research_bank.py
+uv run --no-dev python scripts/bootstrap_expresso_research_bank.py
 ~~~
 
 The helper:
@@ -116,7 +120,7 @@ debugging, and architecture validation.
 After bootstrapping:
 
 ~~~powershell
-uv run python scripts/export_expressive_prompt_bank.py .\runs\expresso-research-bank\prompt-bank.json --language english
+uv run --no-dev python scripts/export_expressive_prompt_bank.py .\runs\expresso-research-bank\prompt-bank.json --language english
 ~~~
 
 Then use the compiled manifest with the same A/B generation and scoring workflow below.
@@ -133,13 +137,13 @@ Follow docs/expressive-speech/RECORDING_PROTOCOL.md and use one authorized speak
 ### 2. Compile reference states
 
 ~~~powershell
-uv run python scripts/export_expressive_prompt_bank.py .\my-prompt-bank\prompt-bank.json --language english
+uv run --no-dev python scripts/export_expressive_prompt_bank.py .\my-prompt-bank\prompt-bank.json --language english
 ~~~
 
 ### 3. Generate neutral-vs-expressive audio
 
 ~~~powershell
-uv run python scripts/generate_expressive_eval.py .\my-prompt-bank\prompt-bank.compiled.json --language english --output-dir .\runs\expressive-eval-v1
+uv run --no-dev python scripts/generate_expressive_eval.py .\my-prompt-bank\prompt-bank.compiled.json --language english --output-dir .\runs\expressive-eval-v1
 ~~~
 
 The report includes time-to-first-chunk so expressive routing cannot hide a streaming regression
@@ -148,7 +152,7 @@ behind a good total real-time factor.
 ### 4. Run lightweight scoring
 
 ~~~powershell
-uv run python scripts/score_expressive_eval.py .\runs\expressive-eval-v1
+uv run --no-dev python scripts/score_expressive_eval.py .\runs\expressive-eval-v1
 ~~~
 
 ### 5. Optional WER
@@ -168,7 +172,7 @@ These can be slow on CPU and are not prerequisites for the first listening test.
 ### 7. Prepare the blind listening set
 
 ~~~powershell
-uv run python scripts/prepare_expressive_blind_eval.py .\runs\expressive-eval-v1
+uv run --no-dev python scripts/prepare_expressive_blind_eval.py .\runs\expressive-eval-v1
 ~~~
 
 This creates the randomized audio set, trials.json, ratings.csv, and a separate answer-key.json.
@@ -180,7 +184,7 @@ For preferred, enter A, B, or Tie. Fill the 1-5 score columns where applicable.
 ### 9. Unblind and summarize
 
 ~~~powershell
-uv run python scripts/summarize_expressive_blind_eval.py .\runs\expressive-eval-v1\blind
+uv run --no-dev python scripts/summarize_expressive_blind_eval.py .\runs\expressive-eval-v1\blind
 ~~~
 
 The summary reports condition-level means, preference counts, and expressive-minus-baseline score
