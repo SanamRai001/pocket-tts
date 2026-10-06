@@ -343,6 +343,55 @@ The loader can reject a bank compiled for a different model reference.
 
 If the Pocket TTS config/weights change, re-export the bank from the original WAV files.
 
+## Generate the A/B evaluation set
+
+After compiling the bank:
+
+```powershell
+uv run python scripts/generate_expressive_eval.py .\my-prompt-bank\prompt-bank.compiled.json --language english
+```
+
+Default output is written under the repository's already-ignored `runs/` directory:
+
+```text
+runs/expressive-eval/
+├── baseline-neutral/
+│   └── <case>.wav
+├── expressive/
+│   └── <case>.wav
+└── report.json
+```
+
+The corpus is:
+
+`docs/expressive-speech/eval-corpus-v1.json`
+
+It contains hand-authored affect trajectories so this first experiment evaluates the router and
+synthesizer independently from ChatGPT/planner quality.
+
+The report records:
+
+- selected style route
+- baseline generation time
+- expressive generation time
+- output duration
+- generation speed relative to audio duration
+
+WER, speaker similarity, perceptual quality, and automatic emotion scoring belong to the next
+evaluation layer; the A/B generator intentionally stays lightweight.
+
+## Optional public research bootstrap
+
+Kyutai's public `tts-voices/expresso` collection contains multiple approximately 10-second
+expressive clips from the same Expresso speakers, including styles such as calm, happy, and angry.
+
+That is useful for non-commercial research/debugging when a fresh same-speaker recording bank is
+not available yet.
+
+Expresso material in that repository is CC BY-NC 4.0 and explicitly non-commercial. Do not treat it
+as the default source for a product bank. For a reusable/product-oriented bank, use self-owned,
+consented, or appropriately licensed recordings and keep `rights_confirmed` accurate.
+
 ## First experiment discipline
 
 Do not tune eight things at once.
