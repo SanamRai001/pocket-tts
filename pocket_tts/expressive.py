@@ -46,6 +46,17 @@ class AffectVector:
         _require_finite_range("dominance", self.dominance, -1.0, 1.0)
         _require_finite_range("intensity", self.intensity, 0.0, 1.0)
 
+    def scaled(self, factor: float) -> "AffectVector":
+        """Move this affect vector toward neutral by a confidence factor."""
+
+        _require_finite_range("factor", factor, 0.0, 1.0)
+        return AffectVector(
+            valence=self.valence * factor,
+            arousal=self.arousal * factor,
+            dominance=self.dominance * factor,
+            intensity=self.intensity * factor,
+        )
+
 
 @dataclass(frozen=True)
 class StyleProfile:
@@ -68,6 +79,7 @@ class ExpressiveSegment:
     affect: AffectVector = AffectVector()
     style: str | None = None
     pause_after_ms: int = 0
+    confidence: float = 1.0
 
     def __post_init__(self) -> None:
         if not self.text.strip():
@@ -76,6 +88,13 @@ class ExpressiveSegment:
             raise ValueError("style override cannot be blank")
         if self.pause_after_ms < 0:
             raise ValueError("pause_after_ms cannot be negative")
+        _require_finite_range("confidence", self.confidence, 0.0, 1.0)
+
+    @property
+    def effective_affect(self) -> AffectVector:
+        """Affect damped toward neutral when the planner is uncertain."""
+
+        return self.affect.scaled(self.confidence)
 
 
 @dataclass(frozen=True)
@@ -191,7 +210,7 @@ class AffectivePromptRouter:
         return min(
             self._profiles,
             key=lambda profile: (
-                self._score(segment.affect, profile, previous_style),
+                self._score(segment.effective_affect, profile, previous_style),
                 profile.name != self.default_style,
                 profile.name,
             ),
