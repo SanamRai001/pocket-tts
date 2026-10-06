@@ -98,35 +98,48 @@ routing/synthesis errors.
 
 ## Optional research-only bootstrap
 
-If no authorized custom bank is available yet, the repository can create a temporary bank from
-Kyutai's public Expresso voice clips:
+If no authorized custom bank is available yet, use **EARS first**.
+
+Kyutai explicitly exposes speakers `p003` and `p031` with multiple
+`emo_*_freeform.wav` recordings from the same speaker for emotion experiments. This is a cleaner
+control than mixing styles across conversational sessions.
+
+Default one-command experiment:
 
 ~~~powershell
-uv run --no-dev python scripts/bootstrap_expresso_research_bank.py
+uv run --no-dev python scripts/run_expressive_research_experiment.py
 ~~~
 
-The helper:
-
-- discovers Expresso clips from the Kyutai voice repository
-- chooses one speaker with a neutral/default anchor and the broadest supported style coverage
-- downloads only the selected clips
-- writes a normal Pocket TTS prompt-bank manifest
-- writes RESEARCH_ONLY.md beside the bank
-- keeps all generated assets under runs/ by default
-
-Expresso is CC BY-NC 4.0 and is **non-commercial only**. This path exists strictly for research,
-debugging, and architecture validation.
-
-After bootstrapping:
+Equivalent EARS bootstrap only:
 
 ~~~powershell
-uv run --no-dev python scripts/export_expressive_prompt_bank.py .\runs\expresso-research-bank\prompt-bank.json --language english
+uv run --no-dev python scripts/bootstrap_ears_research_bank.py
 ~~~
 
-Then use the compiled manifest with the same A/B generation and scoring workflow below.
+The EARS bootstrap maps native recordings into the research bank roles:
 
-Do not use the Expresso bootstrap as the product/default bank. Replace it with an appropriately
-authorized/licensed same-speaker bank before any commercial use.
+- neutral <- neutral
+- warm <- contentment
+- happy <- amusement
+- excited <- amazement
+- calm <- serenity
+- sad <- sadness
+- angry <- anger
+- fearful <- fear
+
+EARS is CC BY-NC 4.0 and is **non-commercial only**.
+
+Expresso remains available as a secondary conversational stress test:
+
+~~~powershell
+uv run --no-dev python scripts/run_expressive_research_experiment.py --source expresso
+~~~
+
+Both bootstraps write the same prompt-bank contract and RESEARCH_ONLY.md notice, so the downstream
+compiler, A/B generator, scorer, route preview, and blind evaluation stay identical.
+
+Do not use either research bootstrap as the product/default bank. Replace them with an
+appropriately authorized/licensed same-speaker bank before commercial use.
 
 ## Complete workflow
 
