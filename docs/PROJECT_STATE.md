@@ -18,15 +18,15 @@ simple dependencies, and easy upstream synchronization.
 
 ## Current milestone
 
-**Expressive foundation milestone: Phase 1 + Phase 2 + Phase 3A infrastructure implemented,
-verification deferred.**
+**Expressive foundation milestone: Phase 1 + Phase 2 + Phase 3A + Phase 3B evaluation tooling
+implemented, verification and real-audio measurement deferred.**
 
 The user explicitly chose to continue building before spending time on local/full verification.
 Tests are present in the branch, but results must not be claimed until they are actually run.
 
-Phase 3A code/tooling is complete enough to capture and compile a real same-speaker bank. The one
-external input still required for the controlled experiment is the authorized reference audio
-itself.
+The software side of the first controlled expressive experiment is now complete. The one external
+input still required before meaningful acoustic conclusions can be drawn is an authorized
+same-speaker emotional reference bank.
 
 Architecture:
 
@@ -120,7 +120,7 @@ Implemented:
 - prompt WAV -> `.safetensors` bank compiler
 - fixed hand-authored emotional evaluation corpus
 - neutral-vs-expressive A/B audio generation script
-- timing, duration, routing, and speed report
+- timing, duration, routing, speed, and time-to-first-chunk report
 - output placed under the already-ignored `runs/` directory
 
 The first bank prototypes are:
@@ -151,6 +151,37 @@ Kyutai's public Expresso voice collection contains same-speaker expressive 10-se
 be useful for a temporary research/debug bank. The Expresso material is CC BY-NC 4.0 and
 non-commercial, so it is not the default product-oriented bank.
 
+## Phase 3B - Measurement and Blind Evaluation Tooling
+
+Implemented:
+
+- time-to-first-audio measurement for baseline and expressive streams
+- dependency-light waveform diagnostics:
+  - finite sample check
+  - peak level
+  - RMS / RMS dBFS
+  - DC offset
+  - near-clipping fraction
+  - near-silence fraction
+- optional ASR WER scoring through a user-selected Hugging Face ASR model
+- optional WavLM speaker similarity using microsoft/wavlm-base-plus-sv
+- optional UTMOS quality scoring
+- deterministic blinded A/B audio randomization
+- ratings CSV for emotional fit, naturalness, speaker consistency, and transition smoothness
+- separate answer key
+- unblinding and aggregate preference/score summary
+- evaluation decision gates documented in EVALUATION_PROTOCOL.md
+
+The heavy scorers remain evaluation-only and are never imported by the normal Pocket TTS runtime
+path unless explicitly requested by the evaluation script.
+
+Emotion agreement is intentionally not wired to one arbitrary classifier yet. A suitable emotion
+scorer should be selected only after the first real bank exists, because label ontology and
+continuous V/A/D compatibility matter.
+
+Peak native-process memory is also still unmeasured; adding a misleading Python-only memory metric
+would be worse than leaving it explicit for the real experiment.
+
 ## Performance / size impact so far
 
 Expected architectural impact:
@@ -176,18 +207,23 @@ Scripts:
 
 - `scripts/export_expressive_prompt_bank.py`
 - `scripts/generate_expressive_eval.py`
+- `scripts/score_expressive_eval.py`
+- `scripts/prepare_expressive_blind_eval.py`
+- `scripts/summarize_expressive_blind_eval.py`
 
 Tests:
 
 - `tests/test_expressive.py`
 - `tests/test_expressive_planner.py`
 - `tests/test_expressive_prompt_bank.py`
+- `tests/test_expressive_eval_tools.py`
 
 Docs/contracts:
 
 - `docs/expressive-speech/ARCHITECTURE.md`
 - `docs/expressive-speech/PLANNER_PROTOCOL.md`
 - `docs/expressive-speech/RECORDING_PROTOCOL.md`
+- `docs/expressive-speech/EVALUATION_PROTOCOL.md`
 - `docs/expressive-speech/expressive-plan-v1.schema.json`
 - `docs/expressive-speech/expressive-prompt-bank-v1.schema.json`
 - `docs/expressive-speech/prompt-bank.example.json`
@@ -209,7 +245,7 @@ git fetch origin
 git switch feat/expressive-tts-foundation
 git pull --ff-only
 
-uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py -v
+uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py tests/test_expressive_eval_tools.py -v
 uv run ty check
 uvx pre-commit run --all-files
 ```
@@ -249,27 +285,27 @@ A real audio evaluation is also required before calling expressive synthesis suc
 
 ## Next phase
 
-**Phase 3B - run the first real prompt-bank experiment and add objective scoring**
+**Phase 3C - run the first real prompt-bank experiment**
 
-The infrastructure is ready. The next meaningful step is data + measurement:
+The implementation and evaluation harness are ready. The next meaningful work is empirical:
 
 1. capture/select one authorized same-speaker bank using `RECORDING_PROTOCOL.md`
 2. compile it with `scripts/export_expressive_prompt_bank.py`
 3. generate the fixed A/B set with `scripts/generate_expressive_eval.py`
-4. listen for:
-   - emotional distinctness
-   - speaker consistency
-   - clipping/noise leakage
-   - abrupt segment boundaries
-   - overacting/underacting
-5. add objective evaluation:
-   - WER
-   - speaker similarity
-   - quality proxy such as UTMOS
-   - emotion agreement
-   - peak memory
-   - time to first chunk
-6. compare prompt-bank routing against ordinary neutral Pocket TTS
+4. run the lightweight scorer first
+5. prepare and complete the blind A/B ratings
+6. optionally run WER, WavLM similarity, and UTMOS
+7. inspect failures by category:
+   - prompt quality
+   - V/A/D/I bank geometry
+   - segment boundary quality
+   - Pocket TTS conditioning ceiling
+8. only after those results:
+   - tune prompt prototypes
+   - consider boundary smoothing/teacher forcing
+   - select an emotion-agreement scorer
+   - measure native peak memory
+   - decide whether the learned affect-prefix adapter is justified
 
-Do not train the affect-prefix adapter yet. The current prompt-conditioned ceiling needs to be
-measured first.
+Do not train the affect-prefix adapter yet. The current prompt-conditioned ceiling still needs to
+be measured first.
