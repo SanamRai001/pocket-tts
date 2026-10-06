@@ -132,13 +132,17 @@ def _choose_speaker(
             raise ValueError(
                 f"speaker {requested!r} has no default clip, so it cannot anchor neutral"
             )
+        if len(styles) < 2:
+            raise ValueError(
+                f"speaker {requested!r} has no expressive style beyond the neutral anchor"
+            )
         return requested, styles
 
     ranked = sorted(
         (
             (len(styles), speaker, styles)
             for speaker, styles in candidates.items()
-            if "default" in styles
+            if "default" in styles and len(styles) >= 2
         ),
         key=lambda item: (-item[0], item[1]),
     )
@@ -248,7 +252,7 @@ def main() -> None:
 
     print(f"Research bank: {manifest_path}")
     print(f"Speaker: {speaker}")
-    print(f"Styles: {', '.join(style['name'] for style in manifest_styles)}")
+    print(f"Styles: {', '.join(str(style['name']) for style in manifest_styles)}")
     print(f"License notice: {notice_path}")
     print("This bank is non-commercial research/evaluation only.")
 
