@@ -1,0 +1,284 @@
+{
+  "schema_version": "1.1",
+  "description": "Phase 3C.1 hand-authored reference trajectories. Extends the frozen v1 baseline with an explicit happy-profile case while preserving every v1 item unchanged.",
+  "items": [
+    {
+      "id": "neutral_schedule",
+      "purpose": "neutral factual delivery",
+      "text": "The meeting starts at nine, and the final report is due before noon.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "The meeting starts at nine, and the final report is due before noon.",
+            "affect": {
+              "valence": 0,
+              "arousal": 0,
+              "dominance": 0.1,
+              "intensity": 0.05
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "warm_home",
+      "purpose": "warm low-arousal positive delivery",
+      "text": "I'm glad you made it home. You can rest now; everything else can wait.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "I'm glad you made it home. You can rest now; everything else can wait.",
+            "affect": {
+              "valence": 0.65,
+              "arousal": -0.3,
+              "dominance": 0.1,
+              "intensity": 0.55
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "happy_reunion",
+      "purpose": "moderate-arousal happy delivery distinct from excitement",
+      "text": "You made it! I'm so happy to see you again; I've missed having you around.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "You made it! I'm so happy to see you again; I've missed having you around.",
+            "affect": {
+              "valence": 0.78,
+              "arousal": 0.38,
+              "dominance": 0.2,
+              "intensity": 0.72
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "excited_success",
+      "purpose": "high-arousal positive delivery",
+      "text": "We did it! The launch worked, and every single system came back green!",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "We did it! The launch worked, and every single system came back green!",
+            "affect": {
+              "valence": 0.9,
+              "arousal": 0.9,
+              "dominance": 0.4,
+              "intensity": 0.95
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "calm_reassurance",
+      "purpose": "calm reassuring delivery",
+      "text": "It's all right. We have enough time, and we can solve one problem at a time.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "It's all right. We have enough time, and we can solve one problem at a time.",
+            "affect": {
+              "valence": 0.3,
+              "arousal": -0.7,
+              "dominance": 0.25,
+              "intensity": 0.55
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "sad_memory",
+      "purpose": "low-arousal negative delivery",
+      "text": "I kept your old note in the drawer. I still read it sometimes when the house is quiet.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "I kept your old note in the drawer. I still read it sometimes when the house is quiet.",
+            "affect": {
+              "valence": -0.75,
+              "arousal": -0.55,
+              "dominance": -0.35,
+              "intensity": 0.75
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "controlled_anger",
+      "purpose": "high-arousal negative dominant delivery",
+      "text": "You knew the system was unsafe, and you shipped it anyway. That cannot happen again.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "You knew the system was unsafe, and you shipped it anyway. That cannot happen again.",
+            "affect": {
+              "valence": -0.85,
+              "arousal": 0.8,
+              "dominance": 0.8,
+              "intensity": 0.9
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "fearful_uncertainty",
+      "purpose": "high-arousal negative vulnerable delivery",
+      "text": "Something moved behind the door. I don't know who is there, but I can hear it getting closer.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "Something moved behind the door. I don't know who is there, but I can hear it getting closer.",
+            "affect": {
+              "valence": -0.8,
+              "arousal": 0.85,
+              "dominance": -0.7,
+              "intensity": 0.9
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "joy_to_grief",
+      "purpose": "strong positive-to-negative intra-paragraph transition",
+      "text": "We actually won! I've waited years for this moment. I just wish Dad were here to see it.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "We actually won! I've waited years for this moment.",
+            "affect": {
+              "valence": 0.9,
+              "arousal": 0.85,
+              "dominance": 0.35,
+              "intensity": 0.95
+            },
+            "style": null,
+            "pause_after_ms": 280,
+            "confidence": 1
+          },
+          {
+            "text": "I just wish Dad were here to see it.",
+            "affect": {
+              "valence": -0.65,
+              "arousal": -0.4,
+              "dominance": -0.3,
+              "intensity": 0.7
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "anxiety_to_relief",
+      "purpose": "negative high-arousal to positive low-arousal transition",
+      "text": "I couldn't find the keys anywhere, and I thought I had locked us out. Then I saw them on the counter, right where I left them.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "I couldn't find the keys anywhere, and I thought I had locked us out.",
+            "affect": {
+              "valence": -0.55,
+              "arousal": 0.65,
+              "dominance": -0.35,
+              "intensity": 0.65
+            },
+            "style": null,
+            "pause_after_ms": 220,
+            "confidence": 1
+          },
+          {
+            "text": "Then I saw them on the counter, right where I left them.",
+            "affect": {
+              "valence": 0.55,
+              "arousal": -0.2,
+              "dominance": 0.15,
+              "intensity": 0.55
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "bittersweet_return",
+      "purpose": "warm nostalgia transitioning into restrained sadness",
+      "text": "This place looks almost exactly the way I remember it. It's strange knowing that everyone else has moved on.",
+      "reference_plan": {
+        "schema_version": "1.0",
+        "segments": [
+          {
+            "text": "This place looks almost exactly the way I remember it.",
+            "affect": {
+              "valence": 0.35,
+              "arousal": -0.35,
+              "dominance": -0.05,
+              "intensity": 0.45
+            },
+            "style": null,
+            "pause_after_ms": 200,
+            "confidence": 1
+          },
+          {
+            "text": "It's strange knowing that everyone else has moved on.",
+            "affect": {
+              "valence": -0.5,
+              "arousal": -0.45,
+              "dominance": -0.25,
+              "intensity": 0.55
+            },
+            "style": null,
+            "pause_after_ms": 0,
+            "confidence": 1
+          }
+        ]
+      }
+    }
+  ]
+}
