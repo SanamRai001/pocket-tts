@@ -190,10 +190,31 @@ The base package still has no mandatory transformer/LLM dependency.
 A future tiny local emotion classifier remains optional research. It should only be added if it
 meaningfully beats the conservative fallback while keeping the CPU/size budget attractive.
 
-## Phase 3: Evaluation harness
+## Phase 3A: Same-speaker prompt bank and controlled A/B harness
 
-A feature is not successful just because it sounds expressive once. Compare baseline Pocket TTS
-against APR on a fixed corpus.
+**Infrastructure implemented on the expressive foundation branch.**
+
+Phase 3A now provides:
+
+- a versioned same-speaker prompt-bank manifest
+- portable local audio/state paths
+- voice-rights confirmation before state export
+- source WAV SHA-256 fingerprints
+- compiled-model/config compatibility metadata
+- an eight-style initial V/A/D/I bank geometry
+- a controlled same-text recording protocol
+- automatic WAV -> safetensors prompt-state compilation
+- a fixed evaluation corpus with hand-authored affect trajectories
+- neutral baseline vs expressive A/B generation
+- routing/timing/duration/speed reporting
+
+The hand-authored trajectories intentionally remove planner quality from the first synthesis
+experiment.
+
+## Phase 3B: Objective evaluation
+
+A feature is not successful just because it sounds expressive once. After a real bank is captured,
+compare baseline Pocket TTS against APR on the fixed corpus.
 
 Track:
 
