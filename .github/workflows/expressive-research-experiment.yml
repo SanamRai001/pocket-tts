@@ -41,7 +41,7 @@ jobs:
           enable-cache: true
 
       - name: Install locked dependencies
-        run: uv sync --frozen
+        run: uv sync --frozen --no-dev
 
       - name: Run research-only expressive experiment
         shell: bash
@@ -58,7 +58,7 @@ jobs:
           if [[ -n "${EXPRESSIVE_SPEAKER:-}" ]]; then
             args+=(--speaker "${EXPRESSIVE_SPEAKER}")
           fi
-          uv run python scripts/run_expressive_research_experiment.py "${args[@]}"
+          uv run --no-dev python scripts/run_expressive_research_experiment.py "${args[@]}"
 
       - name: Show Tier 0 scores
         if: always()
