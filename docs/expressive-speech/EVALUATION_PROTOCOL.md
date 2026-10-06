@@ -92,6 +92,38 @@ It includes:
 The trajectories are hand-authored so the first experiment does not mix planner errors with
 routing/synthesis errors.
 
+## Optional research-only bootstrap
+
+If no authorized custom bank is available yet, the repository can create a temporary bank from
+Kyutai's public Expresso voice clips:
+
+~~~powershell
+uv run python scripts/bootstrap_expresso_research_bank.py
+~~~
+
+The helper:
+
+- discovers Expresso clips from the Kyutai voice repository
+- chooses one speaker with a neutral/default anchor and the broadest supported style coverage
+- downloads only the selected clips
+- writes a normal Pocket TTS prompt-bank manifest
+- writes RESEARCH_ONLY.md beside the bank
+- keeps all generated assets under runs/ by default
+
+Expresso is CC BY-NC 4.0 and is **non-commercial only**. This path exists strictly for research,
+debugging, and architecture validation.
+
+After bootstrapping:
+
+~~~powershell
+uv run python scripts/export_expressive_prompt_bank.py .\runs\expresso-research-bank\prompt-bank.json --language english
+~~~
+
+Then use the compiled manifest with the same A/B generation and scoring workflow below.
+
+Do not use the Expresso bootstrap as the product/default bank. Replace it with an appropriately
+authorized/licensed same-speaker bank before any commercial use.
+
 ## Complete workflow
 
 ### 1. Record the bank
