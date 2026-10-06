@@ -80,8 +80,8 @@ def _write_bank(tmp_path: Path, *, rights_confirmed: bool = True) -> Path:
     return manifest
 
 
-def test_load_prompt_bank_resolves_portable_manifest() -> None:
-    manifest = _write_bank(pytest.ensuretemp("prompt-bank-load"))
+def test_load_prompt_bank_resolves_portable_manifest(tmp_path: Path) -> None:
+    manifest = _write_bank(tmp_path)
     bank = load_prompt_bank(manifest)
 
     assert bank.bank_id == "speaker-a-en-v1"
