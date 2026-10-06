@@ -214,6 +214,7 @@ Scripts:
 - `scripts/summarize_expressive_blind_eval.py`
 - `scripts/bootstrap_expresso_research_bank.py`
 - `scripts/run_expressive_research_experiment.py`
+- `scripts/inspect_expressive_routes.py`
 
 Tests:
 
@@ -222,6 +223,7 @@ Tests:
 - `tests/test_expressive_prompt_bank.py`
 - `tests/test_expressive_eval_tools.py`
 - `tests/test_expresso_bootstrap.py`
+- `tests/test_expressive_route_preview.py`
 
 Docs/contracts:
 
@@ -250,7 +252,7 @@ git fetch origin
 git switch feat/expressive-tts-foundation
 git pull --ff-only
 
-uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py tests/test_expressive_eval_tools.py tests/test_expresso_bootstrap.py -v
+uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py tests/test_expressive_eval_tools.py tests/test_expresso_bootstrap.py tests/test_expressive_route_preview.py -v
 uv run ty check
 uvx pre-commit run --all-files
 ```
@@ -311,8 +313,9 @@ A one-command orchestrator now runs the complete lightweight research experiment
 uv run python scripts/run_expressive_research_experiment.py
 ```
 
-It bootstraps Expresso, compiles prompt states, generates the fixed A/B corpus, writes Tier 0
-scores, and prepares the blinded listening set under `runs/expressive-research-v1`.
+It bootstraps Expresso, writes `route-preview.json`, compiles prompt states, generates the fixed
+A/B corpus, writes Tier 0 scores, and prepares the blinded listening set under
+`runs/expressive-research-v1`.
 
 A manual GitHub Actions workflow also exists at
 `.github/workflows/expressive-research-experiment.yml`. GitHub only exposes
@@ -325,6 +328,17 @@ runner. The workflow is a post-merge/cloud convenience, not a claimed current CI
 **Phase 3C - run the first prompt-bank experiment**
 
 The implementation and evaluation harness are ready. The next meaningful work is empirical.
+
+Phase 3C hardening completed before the first expensive run:
+
+- one-command experiment is rerun-safe (`--overwrite` on compiled prompt states)
+- child scripts execute with the repository root as their working directory
+- lightweight research commands use `uv --no-dev` so Transformers/UTMOS/torchaudio are not
+  installed unless optional research scoring is requested
+- a pre-synthesis route preview is written before model loading
+- route preview warns when high-intensity segments collapse to neutral
+- route preview reports style usage and unused styles
+- new route-preview and bootstrap behavior has focused network-free tests
 
 For research/debugging, run the complete lightweight experiment:
 
