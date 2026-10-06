@@ -31,6 +31,15 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help="Summary JSON path (default: <blind_dir>/summary.json)",
     )
+    parser.add_argument(
+        "--ratings",
+        type=Path,
+        default=None,
+        help=(
+            "Optional ratings CSV path. Useful when the browser downloaded "
+            "ratings.csv into Downloads instead of the blind directory."
+        ),
+    )
     return parser
 
 
@@ -69,8 +78,16 @@ def main() -> None:
             "B": str(answer["B"]),
         }
 
+    ratings_path = (
+        args.ratings.expanduser().resolve()
+        if args.ratings is not None
+        else blind_dir / "ratings.csv"
+    )
+    if not ratings_path.is_file():
+        raise FileNotFoundError(f"ratings CSV does not exist: {ratings_path}")
+
     rows: list[dict[str, str]] = []
-    with (blind_dir / "ratings.csv").open(newline="", encoding="utf-8") as handle:
+    with ratings_path.open(newline="", encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             rows.append({key: value or "" for key, value in row.items()})
 
@@ -130,6 +147,13 @@ def main() -> None:
             }
         )
 
+    if rows and preference_counts["unrated"] == len(rows):
+        raise ValueError(
+            "ratings.csv is still empty: all trials are unrated. "
+            "Complete blind/index.html, click 'Download ratings.csv', then either "
+            "replace blind/ratings.csv or pass the downloaded file with --ratings."
+        )
+
     means = {
         condition: {
             field: _mean(values)
@@ -161,6 +185,7 @@ def main() -> None:
     summary = {
         "schema_version": "1.0",
         "num_trials": len(rows),
+        "ratings_file": str(ratings_path),
         "preference_counts": preference_counts,
         "expressive_win_rate_including_ties_in_denominator": expressive_win_rate,
         "mean_scores": means,
