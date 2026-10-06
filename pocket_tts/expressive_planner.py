@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from collections.abc import Collection, Mapping
 
 from pocket_tts.expressive import AffectVector, ExpressivePlan, ExpressiveSegment
@@ -318,3 +319,162 @@ The output must conform to this JSON Schema:
 
 SOURCE TEXT:
 <<<{source_text}>>>"""
+
+
+_POSITIVE_WORDS = frozenset(
+    {
+        "amazing",
+        "beautiful",
+        "excited",
+        "glad",
+        "grateful",
+        "great",
+        "happy",
+        "hope",
+        "love",
+        "proud",
+        "relief",
+        "relieved",
+        "thank",
+        "wonderful",
+        "won",
+        "win",
+    }
+)
+_NEGATIVE_WORDS = frozenset(
+    {
+        "afraid",
+        "angry",
+        "awful",
+        "died",
+        "fear",
+        "furious",
+        "grief",
+        "hate",
+        "hurt",
+        "lost",
+        "loss",
+        "miss",
+        "sad",
+        "scared",
+        "sorry",
+        "terrible",
+        "upset",
+        "wish",
+        "worried",
+        "worry",
+    }
+)
+_HIGH_AROUSAL_WORDS = frozenset(
+    {
+        "amazing",
+        "angry",
+        "excited",
+        "furious",
+        "hurry",
+        "now",
+        "scared",
+        "terrified",
+        "urgent",
+        "win",
+        "won",
+        "wow",
+    }
+)
+_LOW_AROUSAL_WORDS = frozenset(
+    {
+        "calm",
+        "exhausted",
+        "grief",
+        "miss",
+        "peaceful",
+        "quiet",
+        "sad",
+        "tired",
+        "wish",
+    }
+)
+_DOMINANT_WORDS = frozenset({"absolutely", "demand", "must", "never", "now", "stop"})
+_VULNERABLE_WORDS = frozenset({"afraid", "miss", "please", "scared", "sorry", "wish"})
+
+
+def _bounded(value: float, low: float = -1.0, high: float = 1.0) -> float:
+    return max(low, min(high, value))
+
+
+def _heuristic_segments(source_text: str) -> list[str]:
+    stripped = source_text.strip()
+    if not stripped:
+        raise ExpressivePlanValidationError("source text cannot be empty")
+    return [
+        segment.strip()
+        for segment in re.split(r"(?<=[.!?])\s+|\n{2,}", stripped)
+        if segment.strip()
+    ]
+
+
+def heuristic_plan(source_text: str) -> ExpressivePlan:
+    """Build a conservative, dependency-free English fallback plan.
+
+    This is deliberately not presented as semantic understanding. It uses a tiny
+    lexical/punctuation heuristic, assigns modest confidence, and therefore gets
+    damped toward neutral by the router. It exists so expressive synthesis remains
+    usable offline when no capable planner is available.
+    """
+
+    segments: list[ExpressiveSegment] = []
+    for text in _heuristic_segments(source_text):
+        lower = text.lower()
+        words = re.findall(r"[a-z']+", lower)
+        positive = sum(word in _POSITIVE_WORDS for word in words)
+        negative = sum(word in _NEGATIVE_WORDS for word in words)
+        high_arousal = sum(word in _HIGH_AROUSAL_WORDS for word in words)
+        low_arousal = sum(word in _LOW_AROUSAL_WORDS for word in words)
+        dominant = sum(word in _DOMINANT_WORDS for word in words)
+        vulnerable = sum(word in _VULNERABLE_WORDS for word in words)
+
+        emotional_hits = positive + negative
+        activation_hits = high_arousal + low_arousal
+        control_hits = dominant + vulnerable
+        cue_count = emotional_hits + activation_hits + control_hits
+
+        valence = _bounded(0.45 * (positive - negative))
+        arousal = _bounded(
+            0.4 * (high_arousal - low_arousal) + min(text.count("!"), 2) * 0.12
+        )
+        dominance = _bounded(0.35 * (dominant - vulnerable))
+
+        punctuation_energy = min(text.count("!"), 3) * 0.08 + min(text.count("?"), 2) * 0.03
+        intensity = min(0.65, 0.12 * emotional_hits + 0.08 * activation_hits + punctuation_energy)
+        confidence = min(0.55, 0.18 + 0.06 * cue_count)
+
+        if "can't believe" in lower or "cannot believe" in lower:
+            arousal = max(arousal, 0.45)
+            intensity = max(intensity, 0.4)
+            confidence = max(confidence, 0.32)
+
+        pause_after_ms = 0
+        if text.endswith("..."):
+            pause_after_ms = 350
+        elif text.endswith("!"):
+            pause_after_ms = 140
+        elif text.endswith("?"):
+            pause_after_ms = 100
+
+        segments.append(
+            ExpressiveSegment(
+                text=text,
+                affect=AffectVector(
+                    valence=valence,
+                    arousal=arousal,
+                    dominance=dominance,
+                    intensity=intensity,
+                ),
+                pause_after_ms=pause_after_ms,
+                confidence=confidence,
+            )
+        )
+
+    plan = ExpressivePlan(segments=tuple(segments))
+    validate_plan_text_preservation(plan, source_text)
+    return plan
