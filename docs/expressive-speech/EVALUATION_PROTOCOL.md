@@ -76,9 +76,16 @@ Do not open answer-key.json until ratings are complete.
 
 Use a 1-5 scale. Transition smoothness can be left blank for single-style items.
 
-## Fixed corpus
+## Fixed corpora
 
-Use docs/expressive-speech/eval-corpus-v1.json.
+`docs/expressive-speech/eval-corpus-v1.json` is the frozen Phase 3C baseline that produced the
+first real measurements.
+
+`docs/expressive-speech/eval-corpus-v1.1.json` preserves every v1 case and adds
+`happy_reunion`, giving explicit coverage to the happy prompt profile.
+
+The one-command research runner now defaults to v1.1. Pass
+`--corpus docs/expressive-speech/eval-corpus-v1.json` to reproduce the original baseline exactly.
 
 It includes:
 
@@ -192,7 +199,19 @@ This creates the randomized audio set, trials.json, ratings.csv, and a separate 
 
 ### 8. Rate every item before unblinding
 
-For preferred, enter A, B, or Tie. Fill the 1-5 score columns where applicable.
+The blind-preparation step now writes:
+
+`blind/index.html`
+
+Open that file locally in a browser to play A/B, enter the 1-5 ratings, and download
+`ratings.csv`.
+
+Do not open `answer-key.json` first.
+
+For preferred, choose A, B, or Tie. Transition-smoothness can be left blank for single-style
+items.
+
+Move/replace the downloaded `ratings.csv` into the blind directory before summarizing.
 
 ### 9. Unblind and summarize
 
