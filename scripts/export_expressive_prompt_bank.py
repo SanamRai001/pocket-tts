@@ -72,7 +72,8 @@ def main() -> None:
     )
 
     print(f"Compiled prompt bank: {compiled.manifest_path}")
-    print(f"Model reference: {compiled.compiled_for.model_ref if compiled.compiled_for else model_ref}")
+    compiled_model_ref = compiled.compiled_for.model_ref if compiled.compiled_for else model_ref
+    print(f"Model reference: {compiled_model_ref}")
     print(f"Styles: {', '.join(compiled.style_names)}")
 
 
