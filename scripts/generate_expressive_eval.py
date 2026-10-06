@@ -6,7 +6,7 @@ import argparse
 import json
 import re
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
 
 import scipy.io.wavfile
@@ -101,13 +101,21 @@ def _write_wav(path: Path, sample_rate: int, audio: torch.Tensor) -> None:
     scipy.io.wavfile.write(path, sample_rate, audio.detach().cpu().numpy())
 
 
-def _timed_generate(
-    function: Callable[[], torch.Tensor],
-) -> tuple[torch.Tensor, float]:
+def _timed_stream(
+    function: Callable[[], Iterator[torch.Tensor]],
+) -> tuple[torch.Tensor, float, float]:
     started = time.perf_counter()
-    audio = function()
+    first_chunk_seconds: float | None = None
+    chunks: list[torch.Tensor] = []
+    for chunk in function():
+        if first_chunk_seconds is None:
+            first_chunk_seconds = time.perf_counter() - started
+        chunks.append(chunk)
     elapsed = time.perf_counter() - started
-    return audio, elapsed
+    if not chunks:
+        raise RuntimeError("generation produced no audio chunks")
+    assert first_chunk_seconds is not None
+    return torch.cat(chunks, dim=0), first_chunk_seconds, elapsed
 
 
 def main() -> None:
@@ -165,11 +173,11 @@ def main() -> None:
         )
         route = expressive.routing_trace(plan)
 
-        baseline_audio, baseline_elapsed = _timed_generate(
-            lambda: model.generate_audio(neutral_state, text)
+        baseline_audio, baseline_first_chunk, baseline_elapsed = _timed_stream(
+            lambda: model.generate_audio_stream(neutral_state, text)
         )
-        expressive_audio, expressive_elapsed = _timed_generate(
-            lambda: expressive.generate_audio(plan)
+        expressive_audio, expressive_first_chunk, expressive_elapsed = _timed_stream(
+            lambda: expressive.generate_audio_stream(plan)
         )
 
         baseline_path = baseline_dir / f"{item_id}.wav"
@@ -186,6 +194,8 @@ def main() -> None:
                 "route": list(route),
                 "baseline_wav": str(baseline_path.relative_to(output_root)),
                 "expressive_wav": str(expressive_path.relative_to(output_root)),
+                "baseline_first_chunk_seconds": baseline_first_chunk,
+                "expressive_first_chunk_seconds": expressive_first_chunk,
                 "baseline_generation_seconds": baseline_elapsed,
                 "expressive_generation_seconds": expressive_elapsed,
                 "baseline_audio_seconds": baseline_audio_seconds,
