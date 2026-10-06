@@ -6,9 +6,11 @@ import argparse
 import json
 import re
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 import scipy.io.wavfile
+import torch
 
 from pocket_tts import TTSModel
 from pocket_tts.expressive import AffectivePromptRouter, ExpressiveGenerator
@@ -41,7 +43,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("expressive-eval-output"),
+        default=Path("runs/expressive-eval"),
         help="Directory for generated WAVs and report.json",
     )
     model = parser.add_mutually_exclusive_group()
@@ -94,12 +96,14 @@ def _load_corpus(path: Path) -> list[dict[str, object]]:
     return result
 
 
-def _write_wav(path: Path, sample_rate: int, audio) -> None:
+def _write_wav(path: Path, sample_rate: int, audio: torch.Tensor) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     scipy.io.wavfile.write(path, sample_rate, audio.detach().cpu().numpy())
 
 
-def _timed_generate(function):
+def _timed_generate(
+    function: Callable[[], torch.Tensor],
+) -> tuple[torch.Tensor, float]:
     started = time.perf_counter()
     audio = function()
     elapsed = time.perf_counter() - started
