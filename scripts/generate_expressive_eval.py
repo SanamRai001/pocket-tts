@@ -191,6 +191,7 @@ def main() -> None:
             {
                 "id": item_id,
                 "purpose": item.get("purpose"),
+                "text": text,
                 "route": list(route),
                 "baseline_wav": str(baseline_path.relative_to(output_root)),
                 "expressive_wav": str(expressive_path.relative_to(output_root)),
