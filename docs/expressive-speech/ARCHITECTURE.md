@@ -211,23 +211,31 @@ Phase 3A now provides:
 The hand-authored trajectories intentionally remove planner quality from the first synthesis
 experiment.
 
-## Phase 3B: Objective evaluation
+## Phase 3B: Measurement and blind evaluation
 
-A feature is not successful just because it sounds expressive once. After a real bank is captured,
-compare baseline Pocket TTS against APR on the fixed corpus.
+**Tooling implemented on the expressive foundation branch.**
 
-Track:
+The evaluation layer now measures:
 
-- WER / intelligibility
-- speaker similarity
-- UTMOS or another quality proxy
-- emotion recognition agreement on generated audio
-- real-time factor on CPU
-- peak RSS / prompt-state memory
 - time to first audio chunk
-- human pairwise preference for naturalness and emotional fit
+- real-time generation speed
+- waveform health, RMS, clipping, silence, and DC offset
+- optional ASR WER
+- optional WavLM speaker similarity
+- optional UTMOS
+- blinded human A/B preference
+- emotional fit
+- naturalness
+- speaker consistency
+- transition smoothness
 
-Include emotionally mixed paragraphs, not only isolated emotional sentences.
+The fixed corpus includes emotionally mixed paragraphs as well as single-style items.
+
+Heavy neural scorers are evaluation-only and remain outside the normal Pocket TTS runtime.
+
+Emotion-agreement scoring and native peak-memory measurement are deliberately deferred until a
+real prompt bank exists; choosing a label ontology or a misleading Python-only memory metric before
+the experiment would add complexity without trustworthy information.
 
 ## Phase 4: Continuous control experiment
 
