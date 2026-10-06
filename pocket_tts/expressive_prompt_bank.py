@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import re
 from collections.abc import Mapping, Sequence
@@ -120,6 +121,17 @@ def _relative_path(value: object, path: str) -> Path:
     return parsed
 
 
+def _finite_number(value: object, path: str, low: float, high: float) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise PromptBankValidationError(f"{path} must be a number")
+    number = float(value)
+    if not math.isfinite(number) or number < low or number > high:
+        raise PromptBankValidationError(
+            f"{path} must be finite and in [{low}, {high}], got {value}"
+        )
+    return number
+
+
 def _affect(value: object, path: str) -> AffectVector:
     data = _mapping(value, path)
     _reject_unknown(data, {"valence", "arousal", "dominance", "intensity"}, path)
@@ -133,15 +145,12 @@ def _affect(value: object, path: str) -> AffectVector:
             f"{path} is missing field(s): {', '.join(missing)}"
         )
 
-    try:
-        return AffectVector(
-            valence=float(data["valence"]),
-            arousal=float(data["arousal"]),
-            dominance=float(data["dominance"]),
-            intensity=float(data["intensity"]),
-        )
-    except (TypeError, ValueError) as exc:
-        raise PromptBankValidationError(f"{path} contains invalid affect values") from exc
+    return AffectVector(
+        valence=_finite_number(data["valence"], f"{path}.valence", -1.0, 1.0),
+        arousal=_finite_number(data["arousal"], f"{path}.arousal", -1.0, 1.0),
+        dominance=_finite_number(data["dominance"], f"{path}.dominance", -1.0, 1.0),
+        intensity=_finite_number(data["intensity"], f"{path}.intensity", 0.0, 1.0),
+    )
 
 
 def load_prompt_bank(path: str | Path) -> PromptBank:
@@ -311,7 +320,12 @@ def _config_sha256(model: PromptBankModel) -> str | None:
 
 
 def _portable_relative(path: Path, root: Path) -> Path:
-    return Path(os.path.relpath(path, root))
+    relative = Path(os.path.relpath(path, root))
+    if ".." in relative.parts:
+        raise PromptBankValidationError(
+            f"{path} is outside {root}; compiled prompt-bank paths must stay portable"
+        )
+    return relative
 
 
 def prompt_bank_to_dict(bank: PromptBank) -> dict[str, object]:
@@ -349,12 +363,45 @@ def prompt_bank_to_dict(bank: PromptBank) -> dict[str, object]:
     return payload
 
 
+def validate_compiled_bank_model(
+    bank: PromptBank,
+    *,
+    model_ref: str,
+    model: PromptBankModel | None = None,
+) -> None:
+    """Reject exported prompt states compiled for different model weights."""
+
+    if bank.compiled_for is None:
+        raise PromptBankValidationError(
+            "prompt bank has no compiled_for metadata; recompile it for this model"
+        )
+    if bank.compiled_for.model_ref != model_ref:
+        raise PromptBankValidationError(
+            f"prompt bank was compiled for {bank.compiled_for.model_ref!r}, "
+            f"not {model_ref!r}"
+        )
+
+    expected_hash = bank.compiled_for.config_sha256
+    if model is not None and expected_hash is not None:
+        actual_hash = _config_sha256(model)
+        if actual_hash is not None and actual_hash != expected_hash:
+            raise PromptBankValidationError(
+                "Pocket TTS config changed since this bank was compiled; "
+                "re-export the prompt states"
+            )
+
+
 def style_profiles_from_bank(
     bank: PromptBank,
     *,
     prefer_exported: bool = True,
+    expected_model_ref: str | None = None,
+    model: PromptBankModel | None = None,
 ) -> tuple[StyleProfile, ...]:
     """Build router profiles, preferring fast exported states when available."""
+
+    if prefer_exported and expected_model_ref is not None:
+        validate_compiled_bank_model(bank, model_ref=expected_model_ref, model=model)
 
     profiles: list[StyleProfile] = []
     for entry in bank.entries:
