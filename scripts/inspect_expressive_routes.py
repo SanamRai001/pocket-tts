@@ -60,12 +60,16 @@ def _load_items(path: Path) -> list[dict[str, object]]:
     return result
 
 
-def main() -> None:
-    args = _parser().parse_args()
-    bank = load_prompt_bank(args.prompt_bank)
+def build_route_preview(
+    prompt_bank: str | Path,
+    corpus: str | Path,
+) -> dict[str, object]:
+    """Build a routing report without loading model weights or audio."""
+
+    bank = load_prompt_bank(prompt_bank)
     profiles = style_profiles_from_bank(bank, prefer_exported=False)
     router = AffectivePromptRouter(profiles, default_style="neutral")
-    items = _load_items(args.corpus)
+    items = _load_items(Path(corpus))
 
     style_counts: Counter[str] = Counter()
     warnings: list[str] = []
@@ -114,15 +118,13 @@ def main() -> None:
                 "segments": segment_rows,
             }
         )
-        print(f"{item_id}: {' -> '.join(routes)}")
-
     unused_styles = sorted(set(bank.style_names) - set(style_counts))
     if unused_styles:
         warnings.append(
             "styles unused by fixed corpus: " + ", ".join(unused_styles)
         )
 
-    report = {
+    return {
         "schema_version": "1.0",
         "bank_id": bank.bank_id,
         "speaker_id": bank.speaker_id,
@@ -133,10 +135,27 @@ def main() -> None:
         "items": routed_items,
     }
 
+
+def main() -> None:
+    args = _parser().parse_args()
+    report = build_route_preview(args.prompt_bank, args.corpus)
+
+    items = report["items"]
+    assert isinstance(items, list)
+    for item in items:
+        assert isinstance(item, dict)
+        route = item.get("route")
+        assert isinstance(route, list)
+        print(f"{item.get('id', 'unknown')}: {' -> '.join(str(value) for value in route)}")
+
+    style_usage = report["style_usage"]
+    assert isinstance(style_usage, dict)
     print("\nStyle usage:")
-    for style, count in sorted(style_counts.items()):
+    for style, count in sorted(style_usage.items()):
         print(f"  {style}: {count}")
 
+    warnings = report["warnings"]
+    assert isinstance(warnings, list)
     if warnings:
         print("\nWarnings:")
         for warning in warnings:
