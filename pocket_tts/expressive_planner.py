@@ -195,15 +195,21 @@ def plan_from_dict(
         if style_value is not None and (
             not isinstance(style_value, str) or not style_value.strip()
         ):
-            raise ExpressivePlanValidationError(f"{path}.style must be null or a non-empty string")
+            raise ExpressivePlanValidationError(
+                f"{path}.style must be null or a non-empty string"
+            )
         style = style_value if isinstance(style_value, str) else None
         if allowed_style_set is not None and style is not None and style not in allowed_style_set:
             raise ExpressivePlanValidationError(
                 f"{path}.style {style!r} is not available in the active style bank"
             )
 
-        pause_after_ms = _pause_ms(segment.get("pause_after_ms", 0), f"{path}.pause_after_ms")
-        confidence = _number(segment.get("confidence", 1.0), f"{path}.confidence", 0.0, 1.0)
+        pause_after_ms = _pause_ms(
+            segment.get("pause_after_ms", 0), f"{path}.pause_after_ms"
+        )
+        confidence = _number(
+            segment.get("confidence", 1.0), f"{path}.confidence", 0.0, 1.0
+        )
 
         segments.append(
             ExpressiveSegment(
@@ -444,8 +450,13 @@ def heuristic_plan(source_text: str) -> ExpressivePlan:
         )
         dominance = _bounded(0.35 * (dominant - vulnerable))
 
-        punctuation_energy = min(text.count("!"), 3) * 0.08 + min(text.count("?"), 2) * 0.03
-        intensity = min(0.65, 0.12 * emotional_hits + 0.08 * activation_hits + punctuation_energy)
+        punctuation_energy = (
+            min(text.count("!"), 3) * 0.08 + min(text.count("?"), 2) * 0.03
+        )
+        intensity = min(
+            0.65,
+            0.12 * emotional_hits + 0.08 * activation_hits + punctuation_energy,
+        )
         confidence = min(0.55, 0.18 + 0.06 * cue_count)
 
         if "can't believe" in lower or "cannot believe" in lower:
