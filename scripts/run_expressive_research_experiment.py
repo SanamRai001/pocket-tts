@@ -1,7 +1,7 @@
 """Run the complete research-only expressive Pocket TTS experiment.
 
 This orchestrates the existing Phase 3C tools:
-1. bootstrap a non-commercial Expresso prompt bank
+1. bootstrap a non-commercial same-speaker research prompt bank (EARS by default)
 2. compile WAV prompts to fast-loading safetensors states
 3. generate the fixed neutral-vs-expressive A/B corpus
 4. run dependency-light technical scoring
@@ -24,7 +24,7 @@ from pathlib import Path
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run the full research-only Expresso expressive-TTS experiment."
+        description="Run the full research-only expressive-TTS experiment."
     )
     parser.add_argument(
         "--work-dir",
