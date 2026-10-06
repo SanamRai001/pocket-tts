@@ -27,8 +27,9 @@ Tests are present in the branch, but results must not be claimed until they are 
 The software side of the first controlled expressive experiment is now complete. For a product-
 oriented conclusion, an authorized same-speaker emotional reference bank is still required.
 
-For research/debugging before that bank exists, the branch also includes a non-commercial Expresso
-bootstrap that can create a temporary same-speaker prompt bank from Kyutai's public voice clips.
+For research/debugging before that bank exists, the branch includes two non-commercial bootstraps:
+EARS is the preferred controlled same-speaker emotion bank, while Expresso remains a secondary
+conversational stress-test bank.
 
 Architecture:
 
@@ -149,9 +150,14 @@ quality from planner quality for the first A/B experiment.
 
 ### Public research bootstrap
 
-Kyutai's public Expresso voice collection contains same-speaker expressive 10-second clips and can
-be useful for a temporary research/debug bank. The Expresso material is CC BY-NC 4.0 and
-non-commercial, so it is not the default product-oriented bank.
+Preferred: Kyutai's EARS voice collection exposes speakers `p003` and `p031` with many
+`emo_*_freeform.wav` recordings for the same speaker, which better isolates emotion from
+speaker/session changes.
+
+Secondary: Expresso remains useful as a conversational stress test with 10-second expressive
+segments.
+
+Both EARS and Expresso material used here are CC BY-NC 4.0 and non-commercial only.
 
 ## Phase 3B - Measurement and Blind Evaluation Tooling
 
@@ -212,6 +218,7 @@ Scripts:
 - `scripts/score_expressive_eval.py`
 - `scripts/prepare_expressive_blind_eval.py`
 - `scripts/summarize_expressive_blind_eval.py`
+- `scripts/bootstrap_ears_research_bank.py`
 - `scripts/bootstrap_expresso_research_bank.py`
 - `scripts/run_expressive_research_experiment.py`
 - `scripts/inspect_expressive_routes.py`
@@ -222,6 +229,7 @@ Tests:
 - `tests/test_expressive_planner.py`
 - `tests/test_expressive_prompt_bank.py`
 - `tests/test_expressive_eval_tools.py`
+- `tests/test_ears_bootstrap.py`
 - `tests/test_expresso_bootstrap.py`
 - `tests/test_expressive_route_preview.py`
 
@@ -252,7 +260,7 @@ git fetch origin
 git switch feat/expressive-tts-foundation
 git pull --ff-only
 
-uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py tests/test_expressive_eval_tools.py tests/test_expresso_bootstrap.py tests/test_expressive_route_preview.py -v
+uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py tests/test_expressive_eval_tools.py tests/test_ears_bootstrap.py tests/test_expresso_bootstrap.py tests/test_expressive_route_preview.py -v
 uv run ty check
 uvx pre-commit run --all-files
 ```
@@ -292,29 +300,40 @@ A real audio evaluation is also required before calling expressive synthesis suc
 
 ## Research-only bootstrap path
 
-`scripts/bootstrap_expresso_research_bank.py` can create a temporary bank from Kyutai's Expresso
-voice collection when a custom bank is not available yet.
+Preferred controlled bank:
 
-Properties:
+`scripts/bootstrap_ears_research_bank.py`
 
-- automatic same-speaker selection with a required neutral/default anchor
-- requires at least one expressive style beyond neutral
-- selects one deterministic clip per supported style
-- writes a normal prompt-bank manifest
-- writes an explicit RESEARCH_ONLY.md license/usage notice
-- defaults to `runs/expresso-research-bank`
-- uses CC BY-NC 4.0 material, so it is non-commercial research/evaluation only
+- supports Kyutai EARS emotion speakers `p003` and `p031`
+- uses the same speaker across neutral/contentment/amusement/amazement/serenity/sadness/anger/fear
+- maps those native source emotions to the project's eight research roles
+- defaults to original recordings, with optional `--enhanced` cleaned WAVs
+- writes the standard prompt-bank manifest and RESEARCH_ONLY.md
 
-This is an architecture-validation path, not the future product/default bank.
+Secondary stress-test bank:
 
-A one-command orchestrator now runs the complete lightweight research experiment:
+`scripts/bootstrap_expresso_research_bank.py`
+
+- automatically selects one speaker with a neutral/default anchor
+- uses the broadest supported conversational style coverage
+- is useful for testing robustness to less controlled expressive references
+
+Both are CC BY-NC 4.0 and non-commercial research/evaluation only.
+
+The one-command orchestrator defaults to EARS:
 
 ```powershell
-uv run python scripts/run_expressive_research_experiment.py
+uv run --no-dev python scripts/run_expressive_research_experiment.py
 ```
 
-It bootstraps Expresso, writes `route-preview.json`, compiles prompt states, generates the fixed
-A/B corpus, writes Tier 0 scores, and prepares the blinded listening set under
+Expresso remains selectable:
+
+```powershell
+uv run --no-dev python scripts/run_expressive_research_experiment.py --source expresso
+```
+
+The runner writes `route-preview.json` before loading model weights, compiles prompt states,
+generates the fixed A/B corpus, writes Tier 0 scores, and prepares the blinded listening set under
 `runs/expressive-research-v1`.
 
 A manual GitHub Actions workflow also exists at
@@ -343,7 +362,7 @@ Phase 3C hardening completed before the first expensive run:
 For research/debugging, run the complete lightweight experiment:
 
 ```powershell
-uv run python scripts/run_expressive_research_experiment.py
+uv run --no-dev python scripts/run_expressive_research_experiment.py
 ```
 
 For product-oriented evaluation, capture/select one authorized same-speaker bank using
