@@ -1,0 +1,82 @@
+name: Expressive Research Experiment
+
+on:
+  workflow_dispatch:
+    inputs:
+      speaker:
+        description: "Optional Expresso speaker id, e.g. ex03"
+        required: false
+        type: string
+      max_cached_states:
+        description: "Maximum prompt states kept in memory"
+        required: false
+        default: "2"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  expressive-research:
+    name: Expresso A/B research run
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      OMP_NUM_THREADS: "2"
+      MKL_NUM_THREADS: "2"
+      TOKENIZERS_PARALLELISM: "false"
+
+    steps:
+      - name: Checkout expressive branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Install locked dependencies
+        run: uv sync --frozen
+
+      - name: Run research-only expressive experiment
+        shell: bash
+        env:
+          EXPRESSIVE_SPEAKER: ${{ inputs.speaker }}
+          EXPRESSIVE_CACHE: ${{ inputs.max_cached_states }}
+        run: |
+          set -euo pipefail
+          args=(
+            --work-dir runs/expressive-research-v1
+            --language english
+            --max-cached-states "${EXPRESSIVE_CACHE:-2}"
+          )
+          if [[ -n "${EXPRESSIVE_SPEAKER:-}" ]]; then
+            args+=(--speaker "${EXPRESSIVE_SPEAKER}")
+          fi
+          uv run python scripts/run_expressive_research_experiment.py "${args[@]}"
+
+      - name: Show Tier 0 scores
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f runs/expressive-research-v1/evaluation/scores.json ]]; then
+            cat runs/expressive-research-v1/evaluation/scores.json
+          fi
+
+      - name: Upload non-commercial research evaluation artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: expressive-research-evaluation
+          retention-days: 3
+          if-no-files-found: warn
+          path: |
+            runs/expressive-research-v1/evaluation/
+            runs/expressive-research-v1/prompt-bank/prompt-bank.json
+            runs/expressive-research-v1/prompt-bank/prompt-bank.compiled.json
+            runs/expressive-research-v1/prompt-bank/RESEARCH_ONLY.md
