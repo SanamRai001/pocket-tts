@@ -24,9 +24,11 @@ implemented, verification and real-audio measurement deferred.**
 The user explicitly chose to continue building before spending time on local/full verification.
 Tests are present in the branch, but results must not be claimed until they are actually run.
 
-The software side of the first controlled expressive experiment is now complete. The one external
-input still required before meaningful acoustic conclusions can be drawn is an authorized
-same-speaker emotional reference bank.
+The software side of the first controlled expressive experiment is now complete. For a product-
+oriented conclusion, an authorized same-speaker emotional reference bank is still required.
+
+For research/debugging before that bank exists, the branch also includes a non-commercial Expresso
+bootstrap that can create a temporary same-speaker prompt bank from Kyutai's public voice clips.
 
 Architecture:
 
@@ -210,6 +212,7 @@ Scripts:
 - `scripts/score_expressive_eval.py`
 - `scripts/prepare_expressive_blind_eval.py`
 - `scripts/summarize_expressive_blind_eval.py`
+- `scripts/bootstrap_expresso_research_bank.py`
 
 Tests:
 
@@ -217,6 +220,7 @@ Tests:
 - `tests/test_expressive_planner.py`
 - `tests/test_expressive_prompt_bank.py`
 - `tests/test_expressive_eval_tools.py`
+- `tests/test_expresso_bootstrap.py`
 
 Docs/contracts:
 
@@ -245,7 +249,7 @@ git fetch origin
 git switch feat/expressive-tts-foundation
 git pull --ff-only
 
-uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py tests/test_expressive_eval_tools.py -v
+uv run pytest tests/test_expressive.py tests/test_expressive_planner.py tests/test_expressive_prompt_bank.py tests/test_expressive_eval_tools.py tests/test_expresso_bootstrap.py -v
 uv run ty check
 uvx pre-commit run --all-files
 ```
@@ -283,14 +287,42 @@ A real audio evaluation is also required before calling expressive synthesis suc
 6. **No continuous acoustic control yet**
    Affect is continuous at the semantic layer, but V1 renders through discrete prompt profiles.
 
+## Research-only bootstrap path
+
+`scripts/bootstrap_expresso_research_bank.py` can create a temporary bank from Kyutai's Expresso
+voice collection when a custom bank is not available yet.
+
+Properties:
+
+- automatic same-speaker selection with a required neutral/default anchor
+- requires at least one expressive style beyond neutral
+- selects one deterministic clip per supported style
+- writes a normal prompt-bank manifest
+- writes an explicit RESEARCH_ONLY.md license/usage notice
+- defaults to `runs/expresso-research-bank`
+- uses CC BY-NC 4.0 material, so it is non-commercial research/evaluation only
+
+This is an architecture-validation path, not the future product/default bank.
+
 ## Next phase
 
-**Phase 3C - run the first real prompt-bank experiment**
+**Phase 3C - run the first prompt-bank experiment**
 
-The implementation and evaluation harness are ready. The next meaningful work is empirical:
+The implementation and evaluation harness are ready. The next meaningful work is empirical.
 
-1. capture/select one authorized same-speaker bank using `RECORDING_PROTOCOL.md`
-2. compile it with `scripts/export_expressive_prompt_bank.py`
+For research/debugging, bootstrap Expresso:
+
+```powershell
+uv run python scripts/bootstrap_expresso_research_bank.py
+uv run python scripts/export_expressive_prompt_bank.py .\runs\expresso-research-bank\prompt-bank.json --language english
+```
+
+For product-oriented evaluation, capture/select one authorized same-speaker bank using
+`RECORDING_PROTOCOL.md`.
+
+Then:
+
+1. compile it with `scripts/export_expressive_prompt_bank.py`
 3. generate the fixed A/B set with `scripts/generate_expressive_eval.py`
 4. run the lightweight scorer first
 5. prepare and complete the blind A/B ratings
