@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import shutil
+import wave
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
+import scipy.io.wavfile
 from huggingface_hub import hf_hub_download
 
 REPO_ID = "kyutai/tts-voices"
@@ -144,6 +146,7 @@ Repository: {REPO_ID}
 Revision: {revision}
 Speaker: {speaker}
 Audio variant: {variant}
+Local conversion: PCM16 WAV for Pocket TTS compatibility
 License: {LICENSE_ID}
 Usage scope: non-commercial research/evaluation only
 
@@ -160,6 +163,43 @@ dataset annotations or universal psychological ground truth.
 Before any commercial/product use, replace this bank with an appropriately
 authorized/licensed voice bank.
 """
+
+
+def _write_pcm16_wav(source: Path, destination: Path) -> None:
+    """Convert a WAV into PCM16 so Pocket TTS's built-in WAV reader can open it."""
+
+    sample_rate, raw = scipy.io.wavfile.read(source)
+    audio = np.asarray(raw)
+
+    if audio.size == 0:
+        raise ValueError(f"EARS source contains no audio samples: {source}")
+
+    if np.issubdtype(audio.dtype, np.floating):
+        finite = np.nan_to_num(audio, nan=0.0, posinf=1.0, neginf=-1.0)
+        pcm16 = np.rint(np.clip(finite, -1.0, 1.0) * 32767.0).astype(np.int16)
+    elif audio.dtype == np.int16:
+        pcm16 = audio
+    elif np.issubdtype(audio.dtype, np.signedinteger):
+        info = np.iinfo(audio.dtype)
+        scale = float(max(abs(info.min), abs(info.max)))
+        pcm16 = np.rint(
+            np.clip(audio.astype(np.float64) / scale, -1.0, 1.0) * 32767.0
+        ).astype(np.int16)
+    elif np.issubdtype(audio.dtype, np.unsignedinteger):
+        info = np.iinfo(audio.dtype)
+        midpoint = (info.max + 1) / 2.0
+        normalized = (audio.astype(np.float64) - midpoint) / midpoint
+        pcm16 = np.rint(np.clip(normalized, -1.0, 1.0) * 32767.0).astype(np.int16)
+    else:
+        raise ValueError(f"unsupported EARS WAV dtype {audio.dtype} for {source}")
+
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    scipy.io.wavfile.write(destination, int(sample_rate), pcm16)
+
+    # Validate the exact reader path Pocket TTS uses before continuing.
+    with wave.open(str(destination), "rb") as wav_file:
+        if wav_file.getsampwidth() != 2:
+            raise RuntimeError(f"PCM16 conversion failed for {destination}")
 
 
 def main() -> None:
@@ -183,7 +223,7 @@ def main() -> None:
             )
         )
         destination = recordings / f"{name}.wav"
-        shutil.copy2(cached, destination)
+        _write_pcm16_wav(cached, destination)
         selected_sources.append(source)
 
     manifest = build_manifest(args.speaker)
