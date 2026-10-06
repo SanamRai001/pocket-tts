@@ -61,7 +61,12 @@ const root = document.getElementById("trials");
 function makeSelect(id, values) {
   const s=document.createElement("select"); s.id=id;
   s.innerHTML="<option value=\"\">—</option>";
-  for (const v of values) { const o=document.createElement("option"); o.value=v; o.textContent=v; s.append(o); }
+  for (const v of values) {
+    const o=document.createElement("option");
+    o.value=v;
+    o.textContent=v;
+    s.append(o);
+  }
   return s;
 }
 for (const trial of trials) {
@@ -84,7 +89,9 @@ for (const trial of trials) {
   card.append(grid);
   const pref=document.createElement("label"); pref.append("Preferred ");
   pref.append(makeSelect(trial.id+"_preferred",["A","B","Tie"])); card.append(pref);
-  const notes=document.createElement("textarea"); notes.id=trial.id+"_notes"; notes.placeholder="Optional notes";
+  const notes=document.createElement("textarea");
+  notes.id=trial.id+"_notes";
+  notes.placeholder="Optional notes";
   card.append(notes); root.append(card);
 }
 function esc(value) { const t=String(value || ""); return "\"" + t.replaceAll("\"","\"\"") + "\""; }
