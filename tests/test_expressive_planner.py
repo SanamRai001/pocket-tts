@@ -14,6 +14,7 @@ from pocket_tts.expressive import (
 from pocket_tts.expressive_planner import (
     ExpressivePlanValidationError,
     build_planner_prompt,
+    heuristic_plan,
     plan_from_dict,
     plan_from_json,
     plan_to_json,
@@ -145,3 +146,23 @@ def test_planner_prompt_is_provider_neutral_and_contains_style_bank() -> None:
     assert "Preserve every spoken word" in prompt
     assert '"happy"' in prompt
     assert "I cannot believe it." in prompt
+
+
+def test_heuristic_plan_is_conservative_and_preserves_text() -> None:
+    source = "We actually won! I wish Dad were here."
+
+    plan = heuristic_plan(source)
+
+    assert len(plan.segments) == 2
+    assert plan.segments[0].affect.valence > 0
+    assert plan.segments[0].affect.arousal > 0
+    assert plan.segments[1].affect.valence < 0
+    assert all(segment.confidence <= 0.55 for segment in plan.segments)
+
+
+def test_heuristic_plan_defaults_to_near_neutral_without_emotional_cues() -> None:
+    plan = heuristic_plan("The package is on the table.")
+
+    segment = plan.segments[0]
+    assert segment.affect == AffectVector()
+    assert segment.confidence < 0.3
