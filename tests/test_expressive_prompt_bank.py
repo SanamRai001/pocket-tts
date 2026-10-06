@@ -27,6 +27,8 @@ class FakePromptBankModel:
         self, audio_conditioning: str | Path | torch.Tensor, truncate: bool = False
     ) -> ModelState:
         assert truncate is True
+        if isinstance(audio_conditioning, torch.Tensor):
+            raise AssertionError("test model expects a path-like audio prompt")
         prompt = Path(audio_conditioning)
         self.prompts.append(prompt)
         return {"fake": {"cache": torch.tensor([float(len(self.prompts))])}}
@@ -137,7 +139,10 @@ def test_compile_prompt_bank_exports_states_and_hashes(tmp_path: Path) -> None:
         expected_model_ref="language:english",
         model=model,
     )
-    assert all(Path(profile.source).suffix == ".safetensors" for profile in profiles)
+    assert all(
+        isinstance(profile.source, Path) and profile.source.suffix == ".safetensors"
+        for profile in profiles
+    )
 
 
 def test_compile_requires_voice_rights_confirmation(tmp_path: Path) -> None:
