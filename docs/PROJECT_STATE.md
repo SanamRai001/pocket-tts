@@ -295,7 +295,12 @@ A real audio evaluation is also required before calling expressive synthesis suc
    The local heuristic is intentionally small and English-specific. Other languages should remain
    neutral or use a capable external planner until a justified fallback exists.
 
-6. **No continuous acoustic control yet**
+6. **Source WAV encoding compatibility**
+   Public research datasets may use valid WAV encodings that Python's standard `wave` module
+   cannot decode. The EARS bootstrap now normalizes downloaded clips to PCM16 before Pocket TTS
+   sees them.
+
+7. **No continuous acoustic control yet**
    Affect is continuous at the semantic layer, but V1 renders through discrete prompt profiles.
 
 ## Research-only bootstrap path
@@ -358,6 +363,9 @@ Phase 3C hardening completed before the first expensive run:
 - route preview warns when high-intensity segments collapse to neutral
 - route preview reports style usage and unused styles
 - new route-preview and bootstrap behavior has focused network-free tests
+- EARS source WAVs are normalized to PCM16 during bootstrap because the source files can use
+  IEEE-float WAV format (`wFormatTag=3`), which Python 3.10's built-in `wave` reader rejects
+- PCM16 conversion is validated through the same `wave` path Pocket TTS uses before synthesis
 
 For research/debugging, run the complete lightweight experiment:
 
