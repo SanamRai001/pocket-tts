@@ -41,6 +41,13 @@ class Prototype:
 # Routing prototypes for a bootstrap experiment, not psychological ground truth.
 _PROTOTYPES = {
     "default": Prototype("neutral", 0.0, 0.0, 0.0, 0.0),
+    "happy": Prototype("happy", 0.80, 0.45, 0.20, 0.78),
+    "sad": Prototype("sad", -0.78, -0.48, -0.35, 0.75),
+    "angry": Prototype("angry", -0.82, 0.82, 0.78, 0.92),
+    "calm": Prototype("calm", 0.22, -0.68, 0.12, 0.50),
+    "awe": Prototype("awe", 0.62, 0.55, -0.05, 0.72),
+    "desire": Prototype("desire", 0.52, 0.28, -0.10, 0.62),
+    "disgusted": Prototype("disgusted", -0.78, 0.42, 0.32, 0.78),
     "laughing": Prototype("laughing", 0.85, 0.75, 0.10, 0.85),
     "fast": Prototype("fast", 0.20, 0.75, 0.10, 0.65),
     "whisper": Prototype("whisper", 0.00, -0.70, -0.40, 0.45),
