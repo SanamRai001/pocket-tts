@@ -1,0 +1,114 @@
+{
+  "schema_version": "1.0",
+  "bank_id": "speaker-a-english-v1",
+  "speaker_id": "speaker-a",
+  "language": "english",
+  "rights_confirmed": false,
+  "recording_protocol_version": "1.0",
+  "styles": [
+    {
+      "name": "neutral",
+      "audio_path": "recordings/neutral.wav",
+      "state_path": null,
+      "audio_sha256": null,
+      "affect": {
+        "valence": 0,
+        "arousal": 0,
+        "dominance": 0,
+        "intensity": 0
+      },
+      "prompt_text": "I thought it might happen today. I waited by the window for a moment, then took a breath and said, \"All right, I'm ready.\" After that, everything started to change."
+    },
+    {
+      "name": "warm",
+      "audio_path": "recordings/warm.wav",
+      "state_path": null,
+      "audio_sha256": null,
+      "affect": {
+        "valence": 0.45,
+        "arousal": -0.15,
+        "dominance": 0.05,
+        "intensity": 0.45
+      },
+      "prompt_text": "I thought it might happen today. I waited by the window for a moment, then took a breath and said, \"All right, I'm ready.\" After that, everything started to change."
+    },
+    {
+      "name": "happy",
+      "audio_path": "recordings/happy.wav",
+      "state_path": null,
+      "audio_sha256": null,
+      "affect": {
+        "valence": 0.75,
+        "arousal": 0.35,
+        "dominance": 0.2,
+        "intensity": 0.7
+      },
+      "prompt_text": "I thought it might happen today. I waited by the window for a moment, then took a breath and said, \"All right, I'm ready.\" After that, everything started to change."
+    },
+    {
+      "name": "excited",
+      "audio_path": "recordings/excited.wav",
+      "state_path": null,
+      "audio_sha256": null,
+      "affect": {
+        "valence": 0.85,
+        "arousal": 0.85,
+        "dominance": 0.35,
+        "intensity": 0.95
+      },
+      "prompt_text": "I thought it might happen today. I waited by the window for a moment, then took a breath and said, \"All right, I'm ready.\" After that, everything started to change."
+    },
+    {
+      "name": "calm",
+      "audio_path": "recordings/calm.wav",
+      "state_path": null,
+      "audio_sha256": null,
+      "affect": {
+        "valence": 0.25,
+        "arousal": -0.65,
+        "dominance": 0.1,
+        "intensity": 0.5
+      },
+      "prompt_text": "I thought it might happen today. I waited by the window for a moment, then took a breath and said, \"All right, I'm ready.\" After that, everything started to change."
+    },
+    {
+      "name": "sad",
+      "audio_path": "recordings/sad.wav",
+      "state_path": null,
+      "audio_sha256": null,
+      "affect": {
+        "valence": -0.75,
+        "arousal": -0.5,
+        "dominance": -0.35,
+        "intensity": 0.75
+      },
+      "prompt_text": "I thought it might happen today. I waited by the window for a moment, then took a breath and said, \"All right, I'm ready.\" After that, everything started to change."
+    },
+    {
+      "name": "angry",
+      "audio_path": "recordings/angry.wav",
+      "state_path": null,
+      "audio_sha256": null,
+      "affect": {
+        "valence": -0.8,
+        "arousal": 0.8,
+        "dominance": 0.75,
+        "intensity": 0.95
+      },
+      "prompt_text": "I thought it might happen today. I waited by the window for a moment, then took a breath and said, \"All right, I'm ready.\" After that, everything started to change."
+    },
+    {
+      "name": "fearful",
+      "audio_path": "recordings/fearful.wav",
+      "state_path": null,
+      "audio_sha256": null,
+      "affect": {
+        "valence": -0.75,
+        "arousal": 0.75,
+        "dominance": -0.7,
+        "intensity": 0.9
+      },
+      "prompt_text": "I thought it might happen today. I waited by the window for a moment, then took a breath and said, \"All right, I'm ready.\" After that, everything started to change."
+    }
+  ]
+}
