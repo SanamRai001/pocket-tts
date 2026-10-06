@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/SanamRai001/pocket-tts/expressive-prompt-bank-v1.schema.json",
+  "title": "Pocket TTS Expressive Prompt Bank",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bank_id",
+    "speaker_id",
+    "language",
+    "rights_confirmed",
+    "recording_protocol_version",
+    "styles"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "bank_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "speaker_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rights_confirmed": {
+      "type": "boolean"
+    },
+    "recording_protocol_version": {
+      "const": "1.0"
+    },
+    "compiled_for": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "model_ref"
+      ],
+      "properties": {
+        "model_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "config_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "styles": {
+      "type": "array",
+      "minItems": 1,
+      "contains": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "const": "neutral"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "audio_path",
+          "affect"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]*$"
+          },
+          "audio_path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state_path": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "audio_sha256": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "prompt_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1
+          },
+          "affect": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "valence",
+              "arousal",
+              "dominance",
+              "intensity"
+            ],
+            "properties": {
+              "valence": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "arousal": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "dominance": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1
+              },
+              "intensity": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
