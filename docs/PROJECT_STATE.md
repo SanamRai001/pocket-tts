@@ -213,6 +213,7 @@ Scripts:
 - `scripts/prepare_expressive_blind_eval.py`
 - `scripts/summarize_expressive_blind_eval.py`
 - `scripts/bootstrap_expresso_research_bank.py`
+- `scripts/run_expressive_research_experiment.py`
 
 Tests:
 
@@ -304,35 +305,47 @@ Properties:
 
 This is an architecture-validation path, not the future product/default bank.
 
+A one-command orchestrator now runs the complete lightweight research experiment:
+
+```powershell
+uv run python scripts/run_expressive_research_experiment.py
+```
+
+It bootstraps Expresso, compiles prompt states, generates the fixed A/B corpus, writes Tier 0
+scores, and prepares the blinded listening set under `runs/expressive-research-v1`.
+
+A manual GitHub Actions workflow also exists at
+`.github/workflows/expressive-research-experiment.yml`. GitHub only exposes
+`workflow_dispatch` once the workflow file exists on the repository default branch, so while this
+work remains isolated on the feature branch the immediate execution path is the local one-command
+runner. The workflow is a post-merge/cloud convenience, not a claimed current CI run.
+
 ## Next phase
 
 **Phase 3C - run the first prompt-bank experiment**
 
 The implementation and evaluation harness are ready. The next meaningful work is empirical.
 
-For research/debugging, bootstrap Expresso:
+For research/debugging, run the complete lightweight experiment:
 
 ```powershell
-uv run python scripts/bootstrap_expresso_research_bank.py
-uv run python scripts/export_expressive_prompt_bank.py .\runs\expresso-research-bank\prompt-bank.json --language english
+uv run python scripts/run_expressive_research_experiment.py
 ```
 
 For product-oriented evaluation, capture/select one authorized same-speaker bank using
-`RECORDING_PROTOCOL.md`.
+`RECORDING_PROTOCOL.md`, then run the individual compile/generate/score tools against that bank.
 
-Then:
+After audio exists:
 
-1. compile it with `scripts/export_expressive_prompt_bank.py`
-3. generate the fixed A/B set with `scripts/generate_expressive_eval.py`
-4. run the lightweight scorer first
-5. prepare and complete the blind A/B ratings
-6. optionally run WER, WavLM similarity, and UTMOS
-7. inspect failures by category:
+1. inspect the Tier 0 technical report
+2. complete the blind A/B ratings before opening the answer key
+3. optionally run WER, WavLM similarity, and UTMOS
+4. inspect failures by category:
    - prompt quality
    - V/A/D/I bank geometry
    - segment boundary quality
    - Pocket TTS conditioning ceiling
-8. only after those results:
+5. only after those results:
    - tune prompt prototypes
    - consider boundary smoothing/teacher forcing
    - select an emotion-agreement scorer
